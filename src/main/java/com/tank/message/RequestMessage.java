@@ -11,6 +11,6 @@ public abstract class RequestMessage {
 
   @Getter
   @Setter
-  public int code;
+  public Integer code;
 
 }

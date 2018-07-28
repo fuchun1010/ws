@@ -22,15 +22,15 @@ public class SocketContainer {
 
   public synchronized void addSocket(@NonNull WebSocketSession socket) {
     val threadName = Thread.currentThread().getName();
-    log.info("thread " + threadName + "start add socket");
+    log.info(String.format("thread %s start add socket", threadName));
     sessions.add(socket);
     sockets.putIfAbsent(socket.getId(), socket);
-    log.info("thread " + threadName + "end add socket");
+    log.info(String.format("thread %s end add socket", threadName));
   }
 
   public synchronized void removeSocket(@NonNull WebSocketSession socket) {
     val threadName = Thread.currentThread().getName();
-    log.info("thread " + threadName + "start remove socket");
+    log.info("thread " + threadName + " start remove socket");
     sockets.remove(socket.getId());
     int index = -1;
     for (int i = 0; i < sessions.size(); i++) {

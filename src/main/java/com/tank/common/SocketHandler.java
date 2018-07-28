@@ -1,7 +1,6 @@
 package com.tank.common;
 
 import com.tank.handler.JsonProtocolHandler;
-import com.tank.util.JsonUtil;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +16,9 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 
+import static com.tank.util.JsonUtil.jsonStr2Obj;
+import static com.tank.util.JsonUtil.obj2TextMessage;
+
 /**
  * @author fuchun
  */
@@ -27,9 +29,11 @@ public class SocketHandler extends TextWebSocketHandler {
 
   @Override
   public void afterConnectionEstablished(WebSocketSession session) throws Exception {
-    socketContainer.addSocket(session);
-    val number = socketContainer.onlineUsers();
-    System.out.println("online users is:" + number);
+    val map = new HashMap<String, String>(16);
+    map.putIfAbsent("code", String.valueOf(200));
+    map.putIfAbsent("message", "connect success");
+    val jsonStr = obj2TextMessage(map);
+    session.sendMessage(jsonStr);
   }
 
   @Override
@@ -40,16 +44,16 @@ public class SocketHandler extends TextWebSocketHandler {
     errorResponse.putIfAbsent("code", 500);
     if (Objects.isNull(jsonStr) || jsonStr.trim().length() == 0) {
       errorResponse.putIfAbsent("error", "jsonStr is empty");
-      val errorJson = JsonUtil.obj2JsonStr(errorResponse);
-      session.sendMessage(new TextMessage(errorJson));
+      val errorJson = obj2TextMessage(errorResponse);
+      session.sendMessage(errorJson);
     } else {
-      val request = JsonUtil.jsonStr2Obj(jsonStr, LinkedHashMap.class);
-      int code = (int) request.get("code");
+      val request = jsonStr2Obj(jsonStr, LinkedHashMap.class);
+      val code = (Integer) request.get("code");
       val handler = protocolHandlers.get(code);
       if (Objects.isNull(handler)) {
         errorResponse.putIfAbsent("error", "code " + code + " json handler is not support");
-        val errorJson = JsonUtil.obj2JsonStr(errorResponse);
-        session.sendMessage(new TextMessage(errorJson));
+        val errorJson = obj2TextMessage(errorResponse);
+        session.sendMessage(errorJson);
       } else {
         handler.processProtocol(jsonStr, session);
       }
@@ -68,5 +72,5 @@ public class SocketHandler extends TextWebSocketHandler {
   private SocketContainer socketContainer;
 
   @Autowired
-  private Map<String, JsonProtocolHandler> protocolHandlers;
+  private Map<Integer, JsonProtocolHandler> protocolHandlers;
 }
