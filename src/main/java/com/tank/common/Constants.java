@@ -2,5 +2,5 @@ package com.tank.common;
 
 public class Constants {
 
-  private final static int LOGIN_PROTOCOL = 2000;
+  public final static int LOGIN_PROTOCOL = 2000;
 }
